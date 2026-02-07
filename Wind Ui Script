@@ -1,0 +1,137 @@
+-- WIND UI
+local WindUI = loadstring(game:HttpGet(
+"https://github.com/Footagesus/WindUI/releases/latest/download/main.lua"
+))()
+
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local RunService = game:GetService("RunService")
+
+local SelectedPlayer = nil
+local Noclip = false
+
+-- WINDOW
+local Window = WindUI:CreateWindow({
+    Title = "Painel Universal",
+    Icon = "shield",
+    Author = "by DeividG04",
+    Size = UDim2.fromOffset(550, 450)
+})
+
+local Tab = Window:CreateTab("Admin", "user")
+
+-- 🔽 LISTA DE PLAYERS
+local PlayerNames = {}
+for _,plr in pairs(Players:GetPlayers()) do
+    table.insert(PlayerNames, plr.Name)
+end
+
+local PlayerDropdown = Tab:CreateDropdown({
+    Name = "Selecionar Player",
+    Options = PlayerNames,
+    Callback = function(v)
+        SelectedPlayer = Players:FindFirstChild(v)
+    end
+})
+
+Players.PlayerAdded:Connect(function(plr)
+    PlayerDropdown:Add(plr.Name)
+end)
+
+-- ⚡ SPEED
+Tab:CreateSlider({
+    Name = "Velocidade",
+    Min = 16,
+    Max = 150,
+    Default = 16,
+    Callback = function(v)
+        if LocalPlayer.Character then
+            LocalPlayer.Character.Humanoid.WalkSpeed = v
+        end
+    end
+})
+
+-- 🦘 JUMP
+Tab:CreateSlider({
+    Name = "Pulo",
+    Min = 50,
+    Max = 200,
+    Default = 50,
+    Callback = function(v)
+        if LocalPlayer.Character then
+            LocalPlayer.Character.Humanoid.JumpPower = v
+        end
+    end
+})
+
+-- 📍 TELEPORT
+Tab:CreateButton({
+    Name = "Teleportar até Player",
+    Callback = function()
+        if SelectedPlayer and SelectedPlayer.Character and LocalPlayer.Character then
+            LocalPlayer.Character:PivotTo(
+                SelectedPlayer.Character:GetPivot()
+            )
+        end
+    end
+})
+
+-- 👻 NOCLIP
+Tab:CreateToggle({
+    Name = "Noclip",
+    Default = false,
+    Callback = function(v)
+        Noclip = v
+    end
+})
+
+RunService.Stepped:Connect(function()
+    if Noclip and LocalPlayer.Character then
+        for _,part in pairs(LocalPlayer.Character:GetDescendants()) do
+            if part:IsA("BasePart") then
+                part.CanCollide = false
+            end
+        end
+    end
+end)
+
+-- ☠️ KILL (local/limitado)
+Tab:CreateButton({
+    Name = "Kill",
+    Callback = function()
+        if SelectedPlayer and SelectedPlayer.Character then
+            local hum = SelectedPlayer.Character:FindFirstChildOfClass("Humanoid")
+            if hum then
+                hum.Health = 0
+            end
+        end
+    end
+})
+
+-- 🌪️ FLING (limitado)
+Tab:CreateButton({
+    Name = "Fling",
+    Callback = function()
+        if SelectedPlayer and SelectedPlayer.Character then
+            local hrp = SelectedPlayer.Character:FindFirstChild("HumanoidRootPart")
+            if hrp then
+                local bv = Instance.new("BodyVelocity", hrp)
+                bv.Velocity = Vector3.new(9999,9999,9999)
+                bv.MaxForce = Vector3.new(1e9,1e9,1e9)
+                task.delay(0.3, function()
+                    bv:Destroy()
+                end)
+            end
+        end
+    end
+})
+
+-- 🚪 KICK (não real)
+Tab:CreateButton({
+    Name = "Kick",
+    Callback = function()
+        if SelectedPlayer == LocalPlayer then
+            LocalPlayer:Kick("Você foi kickado pelo Painel Universal")
+        end
+    end
+})
